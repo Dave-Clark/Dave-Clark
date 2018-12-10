@@ -25,18 +25,18 @@ weight = 7
   icon = "r-project"
   icon_pack = "fab"
   name = "R"
-  description = "90%"
+  description = "Statistics, data visualisation, GIS/mapping, data wrangling"
   
 [[feature]]
-  icon = "chart-line"
+  icon = "flask"
   icon_pack = "fas"
-  name = "Statistics"
-  description = "100%"  
+  name = "Molecular ecology"
+  description = "PCR, Illumina MiSeq, qPCR, DNA extraction"  
   
 [[feature]]
-  icon = "camera-retro"
-  icon_pack = "fas"
-  name = "Photography"
-  description = "10%"
+  icon = "linux"
+  icon_pack = "fab"
+  name = "Bioinformatics"
+  description = "Quality control, big data, taxonomy assignment, OTU clustering"
 
 +++
