@@ -19,27 +19,30 @@ date_format = "January 2006"
 #   Leave `date_end` empty if it's your current employer.
 #   Begin/end multi-line descriptions with 3 quotes `"""`.
 [[experience]]
-  title = "CEO"
-  company = "GenCoin"
+  title = "Senior research officer - PRINCe - A new dynamic for Phosphorus in RIverbed Nitrogen Cycling"
+  company = "University of Essex"
   company_url = ""
-  location = "California"
-  date_start = "2017-01-01"
+  location = "Essex, UK"
+  date_start = "2017-10-01"
   date_end = ""
-  description = """
-  Responsibilities include:
-  
-  * Analysing
-  * Modelling
-  * Deploying
-  """
+  description = """Porous riverbed sediments provide an important ecosystem service by cycling nitrogen from a soluble 
+bio-available form, to an inert gas. New evidence suggests that phosphorus may determine the 
+reaction pathways and fate of nitrogen in riverbed systems. My role as senior research officer on this project 
+is to undertake molecular analyses of the relevant N-cycling microbial communities to determine how 
+phosphorus, sediment structure, and microbial communities interact to process nitrogen."""
 
 [[experience]]
-  title = "Professor"
-  company = "University X"
+  title = "PhD - The Macroecology of Microbes; From Pattern, to Process"
+  company = "University of Essex"
   company_url = ""
-  location = "California"
-  date_start = "2016-01-01"
-  date_end = "2016-12-31"
-  description = """Taught electronic engineering and researched semiconductor physics."""
-
+  location = "Essex, UK"
+  date_start = "2013-10-01"
+  date_end = "2017-09-30"
+  description = """My thesis tests hypotheses on patterns of microbial diversity and distributions under the
+unifying theme of macroecology, using a variety of data sources and study systems. I show that the relation-
+ship between temperature and microbial diversity is not consistent, and more isolated sites show markedly
+different patterns. I also collected the most high-resolution dataset to date on halophilic Archaea, which I
+used to show that these extremophilic microbes do not conform to classic biogeographic regionalisation."""
 +++
+
+
