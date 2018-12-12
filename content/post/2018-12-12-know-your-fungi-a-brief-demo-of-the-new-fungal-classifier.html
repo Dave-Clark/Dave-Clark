@@ -1,0 +1,33 @@
+---
+title: 'Know Your Fungi: A Brief Demo Of The New Fungal Classifier'
+author: ~
+date: '2018-12-12'
+slug: know-your-fungi-a-brief-demo-of-the-new-fungal-classifier
+categories: []
+tags: []
+image:
+  caption: ''
+  focal_point: ''
+---
+
+
+
+<p>As a microbial ecologist, part of my job is to try and assign taxonomy to all of the microbial critters living in the habitats I study. For archaeal or bacterial 16S rRNA gene sequences this is relatively easy. The Ribosomal Database Project have a naive Bayesian classifier which is trained on a large curated database of archaeal and bacterial 16S rRNA gene sequences. Best of all, it is implemented in the popular bioinformatics pipeline <code>Qiime</code>, making it nice and easy to apply to your own data.</p>
+<p>But what if you are for dealing with fungal ITS sequences instead? Well a recent paper from <a href="http://www.mycologia.org/content/early/2015/10/28/14-293.abstract">Deshpande et al</a> piqued my interest for several reasons. The paper describes a new curated database of fungal ITS sequences and demonstrates that the RDP naive Bayesian classifier does a decent job of classifying ITS sequences when trained on this database.</p>
+<p>Unfortunately, using the RDP classifier on ITS sequences means going off piste so to speak and using the standalone classifier outside of <code>Qiime</code>. Given that most people never use the classifier outside of <code>Qiime</code>, I thought a brief demonstration might be useful. For all of the following, I’m assuming you’re using BioLinux and are at least somewhat familiar with the Linux terminal.</p>
+<p>First of all, clone the RDPtools github repo like so:</p>
+<pre class="bash"><code>git clone https://github.com/rdpstaff/RDPTools.git</code></pre>
+<p>Then, enter the newly created directory and set up the RDPtools software:</p>
+<pre class="bash"><code>cd RDPTools
+git submodule init
+git submodule updat
+make</code></pre>
+<p>You’ll get a lot of text whizzing through the terminal, don’t worry, you haven’t yet entered the Matrix! Once these processes finish the classifier has installed and is ready for use. However, we must now download some additional files which will allow the classifier to classify our fungal ITS sequences. To download these files, type:</p>
+<pre class="bash"><code>wget &quot;http://rdp.cme.msu.edu/download/rdpclassifiertraindata/data.tgz&quot;</code></pre>
+<p>This may take a few minutes depending on your connection speed. The files are packaged in what we call a tarball (kind of like a windows zip folder). To unpack them:</p>
+<pre class="bash"><code>tar -zxvf data.tgz</code></pre>
+<p>Now when we list the contents of our directory, we can see a new directory, “data”, has been created. This folder contains all the files we need to use the Warcup based classifier (and also the UNITE and LSU data handily).</p>
+<p>I’m going to assume you’ve already clustered your ITS sequences into operational taxonomic units and picked a representative sequence for each OTU using <a href="http://qiime.org/scripts/pick_rep_set.html">Qiime</a> or other means.</p>
+<p>Now we simply call the classifier, tell it to use the Warcup classification files, and tell it where out data is. Simple:</p>
+<pre class="bash"><code>java -Xmx1g -jar classifier.jar classify -t data/classifier/fungalits_warcup/rRNAClassifier.properties -o classifiedFungi.txt /path/to/data/fungalITS_repSet.fasta</code></pre>
+<p>A new file (“classifiedFungi.txt”) will have been created, containing the taxonomic assignments of each fungal sequence, complete with confidence values, pretty cool! You can of course train the classifier yourself on a custom database, in which case, follow the steps <a href="https://github.com/rdpstaff/classifier">here</a> Anyway, I hope this was useful and demonstrates that venturing outside of <code>Qiime</code> is not necessarily that difficult!</p>

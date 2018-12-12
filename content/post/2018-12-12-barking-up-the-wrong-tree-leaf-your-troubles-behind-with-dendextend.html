@@ -1,0 +1,72 @@
+---
+title: Barking up the wrong tree? Leaf your troubles behind with dendextend
+author: ~
+date: '2018-12-12'
+slug: barking-up-the-wrong-tree-leaf-your-troubles-behind-with-dendextend
+categories: []
+tags: []
+image:
+  caption: ''
+  focal_point: ''
+---
+
+
+
+<p>I was recently asked by one of my PhD supervisors to help out on a paper by doing some metagenomic analyses. My mission was essentially to perform some taxonomic analyses of metagenomes and show how a metagenome generated in our lab related to these. So, naturally, I said yes, carried out the necessary analyses and proceeded to design a figure to show the result. I figured a dendrogram would be a nice way of showing compositional similarity between the community we studied and other communities. First of all, I set about creating a distance matrix and plotting the dendrogram like so:</p>
+<pre class="r"><code>library(vegan)</code></pre>
+<pre><code>## Loading required package: permute</code></pre>
+<pre><code>## Loading required package: lattice</code></pre>
+<pre><code>## This is vegan 2.5-3</code></pre>
+<pre class="r"><code>data(dune)  # load some dummy data
+commDist &lt;- vegdist(dune, &quot;jaccard&quot;)  # calculate the community similarity distance matrix
+plot(hclust(commDist))</code></pre>
+<p><img src="/post/2018-12-12-barking-up-the-wrong-tree-leaf-your-troubles-behind-with-dendextend_files/figure-html/unnamed-chunk-1-1.png" width="672" /></p>
+<p>There you go. It’s easy to generate a basic dendrogram using any sort of distance matrix. So I then started tidying it up to make it a bit more presentable.</p>
+<pre class="r"><code>siteLabels &lt;- paste(&quot;Sample &quot;, rownames(dune), sep = &quot;&quot;)  # create some sample labels
+plot(hclust(commDist), labels = siteLabels, main = &quot;&quot;, sub = &quot;&quot;, xlab = &quot;&quot;, ylab = &quot;Jaccard Similarity&quot;, lwd = 2, cex = 1.2)</code></pre>
+<p><img src="/post/2018-12-12-barking-up-the-wrong-tree-leaf-your-troubles-behind-with-dendextend_files/figure-html/unnamed-chunk-2-1.png" width="672" /></p>
+<p>Much nicer! We’ve gotten rid of the nonsense at the bottom, given a more informative y axis label and generally made things ‘nicer’. Except, when I saw the first draft, I saw my supervisor had rotated the plot so that the leaf tips pointed to the left. For some reason this just looked wrong to my eyes and so I opted to replot the dendrogram, in a more sensible orientation.</p>
+<p>Note that to do this, we have to change our approach slightly. For some stupid reason, when we want to plot a dendrogram horizontally, we have to coerce the hclust output to dendrogram class. Additionally, the ‘plot’ method for a dendrogram class object no longer accepts the labels parameter, so we must rename the rows of our dataframe and recalculate the distance matrix instead.</p>
+<pre class="r"><code>rownames(dune) &lt;- siteLabels  # rename rows of dataframe with our sample labels created earlier
+
+commDist &lt;- vegdist(dune, &quot;jaccard&quot;)  # recalculate the distance matrix so that it features our new sample names
+
+par(mar = c(5, 1, 1, 5))  # adjust margins to make room for tip labels
+
+# replot the dendrogram, note that we can now remove the &quot;main =&quot; and &quot;sub =&quot; arguments
+# also remember to switch the x and y labels!
+plot(as.dendrogram(hclust(commDist)), xlab = &quot;Jaccard Similarity&quot;, lwd = 2, cex = 1.2, horiz = T)</code></pre>
+<p><img src="/post/2018-12-12-barking-up-the-wrong-tree-leaf-your-troubles-behind-with-dendextend_files/figure-html/unnamed-chunk-3-1.png" width="672" /></p>
+<p>Perfect! Or at least I thought so. Turns out my supervisor liked the improved orientation but didn’t like the way the branches all ended at the same point. That should be easy to correct right? Wrong!</p>
+<p>I spent near enough an entire day trying to get this plot perfect without success. I went as far as exploring the <code>ggdendro</code> package which allows plotting of dendrograms in a ggplot-esque manner.</p>
+<p>Then I stumbled on a solution, enter <code>dendextend</code>! A quick peek of the package manual reveals some really awesome capabilities, I really urge you to take a <a href="https://cran.r-project.org/web/packages/dendextend/vignettes/introduction.html">look</a> as some of the figures you can create are amazing. For my humble needs, this package solved all my problems easily, and in a couple of lines I’d created exactly the figure my supervisor wanted.</p>
+<pre class="r"><code>ifelse(&quot;dendextend&quot; %in% rownames(installed.packages()) == T, library(dendextend), install.packages(dendextend))</code></pre>
+<pre><code>## 
+## ---------------------
+## Welcome to dendextend version 1.9.0
+## Type citation(&#39;dendextend&#39;) for how to cite the package.
+## 
+## Type browseVignettes(package = &#39;dendextend&#39;) for the package vignette.
+## The github page is: https://github.com/talgalili/dendextend/
+## 
+## Suggestions and bug-reports can be submitted at: https://github.com/talgalili/dendextend/issues
+## Or contact: &lt;tal.galili@gmail.com&gt;
+## 
+##  To suppress this message use:  suppressPackageStartupMessages(library(dendextend))
+## ---------------------</code></pre>
+<pre><code>## 
+## Attaching package: &#39;dendextend&#39;</code></pre>
+<pre><code>## The following object is masked from &#39;package:permute&#39;:
+## 
+##     shuffle</code></pre>
+<pre><code>## The following object is masked from &#39;package:stats&#39;:
+## 
+##     cutree</code></pre>
+<pre><code>## [1] &quot;dendextend&quot;</code></pre>
+<pre class="r"><code># uncomment following line if this is the fist time you&#39;ve installed this package!
+# library(dendextend)
+dend1 &lt;- as.dendrogram(hclust(commDist))
+wellHung &lt;- hang.dendrogram(dend1)  # the cheeky variable names are absolutely essential!
+plot_horiz.dendrogram(wellHung, side = F, xlab = &quot;Jaccard Dissimilarity&quot;)</code></pre>
+<p><img src="/post/2018-12-12-barking-up-the-wrong-tree-leaf-your-troubles-behind-with-dendextend_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
+<p>There you go, an awesome package which save me from wasting too many more days of work!</p>

@@ -1,0 +1,31 @@
+---
+title: Does the Adonis test really exist?
+author: ~
+date: '2018-12-12'
+slug: does-the-adonis-test-really-exist
+categories: []
+tags: []
+image:
+  caption: ''
+  focal_point: ''
+---
+I've recently started a chapter for my PhD which involves a meta-analysis of microbial ecological literature. This has involved looking through the methods, or more specifically the stats sections, of lots of studies to see whether they are suitable for inclusion in my analysis. One idiosyncracy I noted whilst doing this is the number of studies that refer to an "Adonis test". As far as I am aware, `adonis` is simply the name of the function that carries out a permutational MANOVA (multivariate analysis of variance) or non-parametric MANOVA as the original author of this statistical test calls it (Anderson, 2001).
+
+A quick google search appears to suggest that one potential difference might be that the statistical test carried out by the `adonis()` function is capable of handling both categoric and continuous predictors. In contrast, non-parametric MANOVA is only able to handle categoric predictors. This difference sort of makes sense, but I'm still not convinced that we should be using the term "adonis test".
+
+I was also interested to see how many microbial ecology studies actually refer to this so called "adonis test" to see whether we are to blame for this confusion. I conducted a highly rigorous and robust google scholar search (yep, really!) on the terms "adonis test" and "adonis test" + microb* and limited results from 2001-present.
+
+```{r, warning = F, message = F, echo = F}
+library(ggplot2)
+adonisResults <- data.frame(nStudies = c(150, 126, 11), reference = c("adonis", "adonis + microb*", "adonis, microb* + MANOVA"))
+```
+
+```{r, warning = F, message = F, echo = F}
+searchGraph <- ggplot(data = adonisResults, aes(y = nStudies, factor(reference), fill = factor(reference)))+geom_bar(stat = "identity") + theme_bw() + scale_x_discrete(labels = c("adonis test", "adonis test \n and microb*", "adonis test + \nmicrob* + manova")) + xlab("Google Scholar Search Term") + ylab("Number of Hits (2001 - Present)") + guides(fill = F) + theme(axis.text = element_text(size = 12), axis.title = element_text(size = 14, face = "bold"))
+plot(searchGraph)
+```
+
+As it turns out, `r adonisResults$nStudies[2]/adonisResults$nStudies[1] * 100`% of the studies that mention "adonis test" also feature the word "microb*", suggesting that we might be to blame! Also, only `r adonisResults$nStudies[3]` of these studies used the term "MANOVA", suggesting that the vast majority did not elaborate on the statistical procedure initiated by the `adonis` function.
+
+If I'm completely wrong on this and there is such a thing as an adonis test then please do tell me. But it seems to be that we need to be a little more careful when describing the statistical methods we use...
+ 
