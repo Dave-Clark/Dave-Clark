@@ -1,0 +1,63 @@
+---
+title: ggplot2; From default to delightful
+author: ~
+date: '2018-12-15'
+slug: ggplot2-from-default-to-delightful
+categories: []
+tags: []
+image:
+  caption: ''
+  focal_point: ''
+---
+
+
+
+<p>If you use <code>R</code> to analyse and plot your data, then you’ve probably heard of and used the <code>ggplot2</code> package, written by Hadley Wickham. <code>ggplot2</code> is a highly flexible plotting package allowing you to create just about any kind of plot you can think of, and customise just about any aspect of your plot.</p>
+<p>However, <code>ggplot2</code> is also known for it’s somewhat strange choice of default options (at least, they seem strange to me!). Therefore, it can seem like a lot of work to go from a basic plot to something that is approaching publication quality. Whilst there are many excellent guides out there to help with this process, I thought I’d weigh in with a few tips and personal preferences which have helped me to elevate my plots to another level.</p>
+<p>Let’s begin by loading the package and simulating some data to play around with.</p>
+<pre class="r"><code>library(ggplot2)
+
+myData &lt;- data.frame(var1 =  runif(1000, 0, 100), var2 = runif(1000, -10, 10),
+  catVar = rep(c(1:4), times = 250))
+
+head(myData)</code></pre>
+<pre><code>##       var1      var2 catVar
+## 1 94.23994 -1.937782      1
+## 2 55.38800  3.144662      2
+## 3 47.82335 -2.186647      3
+## 4 26.30024 -4.740056      4
+## 5 58.41232 -8.794706      1
+## 6 46.38606 -6.323146      2</code></pre>
+<p>Hopefully that code should be fairly easy to understand, we’ve simulated two continuous variables (with a random distribution) and created a categorical variable.</p>
+<p>Now let’s create the most basic scatter plot possible with this data.</p>
+<pre class="r"><code>plot1 &lt;- ggplot(myData, aes(x = var1, y = var2)) + geom_point()
+plot1</code></pre>
+<p><img src="/post/2018-12-15-ggplot2-from-default-to-delightful_files/figure-html/unnamed-chunk-2-1.png" width="672" /> That looks ok, but it’s not perfect. The text and points are quite small, the black points are bit abrasive on the eye and the grey background is a little distracting. Additionally, the axis labels are not informative and we are also obscuring potentially interesting trends by plotting all of the data from our different groups together. So, lets set about fixing those things.</p>
+<pre class="r"><code>ggplot(myData, aes(x = var1, y = var2)) +
+  geom_point(size = 2, color = &quot;grey&quot;) +
+  facet_wrap(~catVar)</code></pre>
+<p><img src="/post/2018-12-15-ggplot2-from-default-to-delightful_files/figure-html/unnamed-chunk-3-1.png" width="672" /></p>
+<p>So now the points are a little bigger and grey, which makes them easier to look at and with an aesthetically nicer muted contrast. We’ve also split the data into 4 separate panels, so that we can seen any group specific trends far easier, and without the visual clutter of lots of different colour points (ideal when there is a monetary cost to publishing color figures). But that grey background is now obscuring things, and our axis labels are still hard to read and uninformative. Let’s fix those.</p>
+<pre class="r"><code>ggplot(myData, aes(x = var1, y = var2)) +
+  geom_point(size = 2, color = &quot;grey&quot;) +
+  facet_wrap(~catVar) +
+  labs(x = &quot;Variable 1&quot;, y = &quot;Variable 2&quot;) +
+  theme_bw()</code></pre>
+<p><img src="/post/2018-12-15-ggplot2-from-default-to-delightful_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
+<p>We’re starting to look quite good now, the points are now much more visible, yet not too harsh against the white background, and our axis labels now tell us something about the data (if it were real!). Now we can apply some final polish to really get this looking great!</p>
+<pre class="r"><code>finalPlot &lt;- ggplot(myData, aes(x = var1, y = var2)) +
+  geom_point(size = 2, color = &quot;grey&quot;) +
+  facet_wrap(~catVar) +
+  labs(x = &quot;Variable 1&quot;, y = &quot;Variable 2&quot;) +
+  theme_bw() +
+  theme(axis.text = element_text(size = 16),
+    axis.title = element_text(size = 18),
+    strip.text.x = element_text(size = 16),
+    panel.grid.major = element_blank())</code></pre>
+<p>Done! The text around the plot is now much easier to see, and we’ve removed the major gridlines which means less distraction from the data. Everything is far clearer and easier to read.</p>
+<pre class="r"><code>plot1</code></pre>
+<p><img src="/post/2018-12-15-ggplot2-from-default-to-delightful_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
+<pre class="r"><code>finalPlot</code></pre>
+<p><img src="/post/2018-12-15-ggplot2-from-default-to-delightful_files/figure-html/unnamed-chunk-6-2.png" width="672" /></p>
+<p>One final tip, save your graphs as pdfs. PDFs are known as vector based graphics and maintain resolution far better than bitmap based graphics such as PNGs, JPEGs or TIFs. The added bonus is that many journals also request your figures to be in a vector based format, so you’re also helping your figures become published.</p>
+<pre class="r"><code>ggsave(&quot;myPlot.pdf&quot;, finalPlot, width = 8, height = 8, device = &quot;pdf&quot;)</code></pre>
