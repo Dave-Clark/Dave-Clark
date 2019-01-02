@@ -1,0 +1,117 @@
+---
+title: Making maps with ggplot2 and sf
+author: ~
+date: '2019-01-01'
+slug: making-maps-with-ggplot2-and-sf
+categories: []
+tags: []
+image:
+  caption: ''
+  focal_point: ''
+---
+
+
+
+<p>Recently, the newest version of the popular <code>ggplot2</code> graphics package was announced, and it has some nifty mapping features that I was keen to try out (read more <a href="https://www.tidyverse.org/articles/2018/07/ggplot2-3-0-0/">here</a>). Mainly, I was interested in the support for <code>sf</code>, or “simple features”, objects. This class of objects were created as part of a wider <code>R</code> package designed to make mapping and spatial analyses far easier.</p>
+<p>The latest update of <code>ggplot2</code> not only makes plotting from <code>sf</code> objects trivial, but also means that some quite nice map figures can be made with relatively little effort, as you’ll hopefully see below.</p>
+<pre class="r"><code># first you&#39;ll need to update your version of ggplot to the latest version
+# install.packages(&quot;ggplot2&quot;)
+library(ggplot2)
+
+# now lets load some other packages that we&#39;ll need to load and manipulate
+# spatial data in R
+library(mapdata)
+library(sf)
+library(lwgeom)</code></pre>
+<p>Assuming you managed to get those packages installed and loaded ok (if you didn’t, you almost certainly have encountered some dependency issues), we can now start playing with some data. To begin, let’s load a world map to play with.</p>
+<pre class="r"><code>mapBase &lt;- map(&quot;worldHires&quot;, fill = T, plot = F)
+
+# now we need to coerce it to an &quot;sf&quot; object, and fix any
+mapBase &lt;- st_as_sf(mapBase)</code></pre>
+<pre class="r"><code># now let&#39;s try cropping it to a region of Europe
+cropMap &lt;- st_crop(mapBase, xmin = -15, xmax = 30, ymin = 30, ymax = 60)
+
+# note we get an error message about Self-intersection...</code></pre>
+<pre class="r"><code># we can fix this using the lwgeom library...
+mapBase &lt;- st_make_valid(mapBase)
+cropMap &lt;- st_crop(mapBase, xmin = -15, xmax = 30, ymin = 30, ymax = 60)</code></pre>
+<pre><code>## although coordinates are longitude/latitude, st_intersection assumes that they are planar</code></pre>
+<pre><code>## Warning: attribute variables are assumed to be spatially constant
+## throughout all geometries</code></pre>
+<pre class="r"><code># now it works fine...</code></pre>
+<p>Now that we have a valid <code>sf</code> object to plot, we can start using the <code>geom_sf</code> function to start making some nice maps.</p>
+<pre class="r"><code># basic map to start with
+ggplot(cropMap) + geom_sf()</code></pre>
+<p><img src="/post/2019-01-01-making-maps-with-ggplot2-and-sf_files/figure-html/unnamed-chunk-5-1.png" width="672" /></p>
+<p>Cool right? Notice a few neat things? Firstly, <code>ggplot</code> draws a nice graticule for you, complete with the correct “degrees” symbol and N, S, E, or W to denote the correct hemisphere. Secondly, go ahead and resize the map… What do you notice? Hopefully, you’ll see that the aspect ratio of the map has been fixed so that your map always projects correctly. This is a great feature and saves you some time faffing around trying to manually correct the aspect ratio.</p>
+<p>Having explored some basic features, we can now start to tailor our map and add features to it using other packages, or data.</p>
+<pre class="r"><code># let&#39;s say we want to highlight the location of Spain, clarify the axes,
+# and remove those annoying grid lines
+spainMap &lt;- ggplot(cropMap,
+    aes(fill = factor(ifelse(cropMap$ID == &quot;Spain&quot;, 1, 2)))) +
+  geom_sf() +
+  labs(x = &quot;Longitude&quot;, y = &quot;Latitude&quot;, fill = &quot;&quot;) +
+  scale_fill_manual(values = c(&quot;darkgrey&quot;, &quot;lightgrey&quot;),
+    labels = c(&quot;Spain&quot;, &quot;Not Spain&quot;)) +
+  theme_bw() +
+  theme(panel.grid = element_line(colour = &quot;transparent&quot;),
+    axis.title = element_text(size = 18),
+    axis.text = element_text(size = 16),
+    legend.text = element_text(size = 14),
+    legend.title = element_text(size = 14))
+
+spainMap</code></pre>
+<p><img src="/post/2019-01-01-making-maps-with-ggplot2-and-sf_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
+<p>Pretty easy so far right? But what if we want to add some points to the map, for example to highlight sampling locations? Well, this is really easy too!</p>
+<pre class="r"><code># simulate some random coordinates within the limits of our map
+locations &lt;- data.frame(lat = runif(25, 30, 60), long = runif(25, -15, 30))
+
+# now convert this dataframe into an sf dataframe
+sfPoints &lt;- st_as_sf(locations, coords = c(&quot;long&quot;, &quot;lat&quot;), crs = 4326)
+
+# and simply add another geom_sf layer to the plot to include the points
+pointsMap &lt;- ggplot() +
+  geom_sf(data = cropMap,
+    aes(fill = factor(ifelse(cropMap$ID == &quot;Spain&quot;, 1, 2)))) +
+  geom_sf(data = sfPoints, col = &quot;red&quot;, size = 3) +
+  labs(x = &quot;Longitude&quot;, y = &quot;Latitude&quot;, fill = &quot;&quot;) +
+  scale_fill_manual(values = c(&quot;darkgrey&quot;, &quot;lightgrey&quot;),
+    labels = c(&quot;Spain&quot;, &quot;Not Spain&quot;)) +
+  theme_bw() +
+  theme(panel.grid = element_line(colour = &quot;transparent&quot;),
+    axis.title = element_text(size = 18),
+    axis.text = element_text(size = 16),
+    legend.text = element_text(size = 14),
+    legend.title = element_text(size = 14))
+
+pointsMap</code></pre>
+<p><img src="/post/2019-01-01-making-maps-with-ggplot2-and-sf_files/figure-html/unnamed-chunk-7-1.png" width="672" /></p>
+<p>Again, super simple. Now, I’d like to create a smaller map, that just shows Spain and any points inside it, so I can make a nice panel figure with the two maps side by side. Also, don’t forget a scale bar, which we can add using the <code>ggspatial</code> package.</p>
+<pre class="r"><code>library(ggspatial)
+
+# work out which points are in the polygon of interest
+spainPoints &lt;- st_join(sfPoints, cropMap[cropMap$ID == &quot;Spain&quot;, ],
+  join = st_intersects)</code></pre>
+<pre><code>## although coordinates are longitude/latitude, st_intersects assumes that they are planar</code></pre>
+<pre class="r"><code>spainZoom &lt;- ggplot() +
+  geom_sf(data = cropMap[cropMap$ID == &quot;Spain&quot;, ]) +
+  annotation_scale(location = &quot;br&quot;, text_cex = 2) +
+  geom_sf(data = spainPoints[spainPoints$ID == &quot;Spain&quot;, ], colour = &quot;red&quot;,
+    size = 3) +
+  theme_void() +
+  theme(panel.grid = element_line(colour = &quot;transparent&quot;))
+
+spainZoom</code></pre>
+<pre><code>## Scale on map varies by more than 10%, scale bar may be inaccurate</code></pre>
+<p><img src="/post/2019-01-01-making-maps-with-ggplot2-and-sf_files/figure-html/unnamed-chunk-8-1.png" width="672" /></p>
+<p>So, now we have our two maps sorted, we can arrange them side by side using the <code>cowplot</code> package.</p>
+<pre class="r"><code>library(cowplot)</code></pre>
+<pre><code>## 
+## Attaching package: &#39;cowplot&#39;</code></pre>
+<pre><code>## The following object is masked from &#39;package:ggplot2&#39;:
+## 
+##     ggsave</code></pre>
+<pre class="r"><code>plot_grid(spainZoom, pointsMap, labels = &quot;AUTO&quot;, rel_widths = c(0.6, 1))</code></pre>
+<pre><code>## Scale on map varies by more than 10%, scale bar may be inaccurate</code></pre>
+<p><img src="/post/2019-01-01-making-maps-with-ggplot2-and-sf_files/figure-html/unnamed-chunk-9-1.png" width="1152" /></p>
+<p>There you have it, combining the <code>sf</code> and newest <code>ggplot2</code> packages allows you quickly and easily make some neat looking map figures!</p>
