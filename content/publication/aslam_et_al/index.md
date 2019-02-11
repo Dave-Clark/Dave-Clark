@@ -4,7 +4,7 @@ date = 2016-12-01T00:00:00
 draft = false
 
 # Authors. Comma separated list, e.g. `["Bob Smith", "David Jones"]`.
-authors = ["Shazia N Aslam", "Alex J Dumbrell", "Jamal S Sabir", "Mohammed HZ Mutwakil", "Mohammed MN Baeshen", "Salah EM Abo‐Aba", "Dave R Clark", "Steven A Yates", "Nabih A Baeshen", "Graham JC Underwood", "Terry J McGenity"]
+authors = ["Shazia N Aslam", "Alex J Dumbrell", "Jamal S Sabir", "Mohammed HZ Mutwakil", "Mohammed MN Baeshen", "Salah EM Abo‐Aba", "**Dave R Clark**", "Steven A Yates", "Nabih A Baeshen", "Graham JC Underwood", "Terry J McGenity"]
 
 # Publication type.
 # Legend:
@@ -43,7 +43,7 @@ url_source = "https://onlinelibrary.wiley.com/doi/abs/10.1111/1462-2920.13474"
 doi = ""
 
 # Does this page contain LaTeX math? (true/false)
-math = true
+math = false
 
 # Featured image
 # To use, add an image named `featured.jpg/png` to your page's folder.
