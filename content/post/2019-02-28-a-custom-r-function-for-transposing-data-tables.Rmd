@@ -1,0 +1,100 @@
+---
+title: A custom R function for transposing data.tables
+author: Dave Clark
+date: '2019-02-28'
+slug: a-custom-r-function-for-transposing-data-tables
+categories: []
+tags: []
+image:
+  caption: ''
+  focal_point: ''
+---
+
+The `data.table` package has become my favourite `R` package for all things data handling. Unlike the "tidyverse" suite of packages, the syntax is more akin to base `data.frame` syntax, meaning I was able to pick it up quite quickly. It is also incredibly quick, and the parallel data import/export functions (`fread` & `fwrite`) are a real gift for working with larger data tables, like OTU tables, which can contain several hundred columns, and many thousands of rows. The only thing I found `data.table` lacked was a function to transpose data in a convenient way.
+
+Let me demonstrate what I mean with some examples. Let's load a small toy dataset that is topologically similar to an OTU table (e.g. samples as cols, species abundances as rows).
+
+```{r}
+
+# load data.table and vegan packages
+library(data.table)
+library(vegan)
+
+# load the Barro Colorado Island tree dataset
+data(BCI)
+
+# coerce to a data.table
+# keep the rownames, as this we'll use this as a 'sample' column
+bci <- as.data.table(BCI, keep.rownames = T)
+
+# make more realistic sample names and delete old col
+bci[, ":="(sampleName = paste0("sample_", rn), rn = NULL)]
+```
+
+Now the data represent something comparable to the OTU tables I am used to working with. Species are columns, whilst each row represents a sample. However, it is common to want to work with the data in the opposite format, with samples as columns and species as rows. Intuitively, one would normally transpose the data using the `t` function.
+
+```{r, warning = F, message = F}
+transBci <- t(bci)
+
+str(transBci)
+```
+
+However, as you can see, this causes problems. Having a sample column present in our data means that all the counts get coerced to character class when transposed. Plus, we'd have to manually set the sample row as our new column names, and then delete it from the data.
+
+An alternate solution involves using `melt` and `dcast` functions to transpose the data...
+
+```{r, warning = F, message = F}
+transBci2 <- dcast(melt(bci, id.vars = "sampleName"), variable ~ sampleName)
+
+str(transBci2)
+```
+
+That's better: the sample names are now in the correct place, we have a column with the species names, and the data have remained in the correct integer class.
+However, whilst that code may have run quite quickly, much larger datasets can slow it down. I therefore wrote a little function based on the original transpose function to get the same result as above, but quicker!
+
+The function is called `transDT` and can be found in my GitHub hosted package, `ecolFudge`.
+
+```{r, warning = F, message = F}
+# first install my package from github
+library(devtools)
+
+install_github("dave-clark/ecolFudge")
+
+# load ecolFudge package
+library(ecolFudge)
+
+# view the transDT function
+transDT
+```
+
+As you can see, the function takes three arguments. The first, `dt`, is simply the data.table you wish to transpose. The second, `transCol`, is the column that you wish to become your new column names. In our example, this would be the `sampleName` column. The third argument, `rowID`, is simply the name you would like to call the column with your new row identifiers (e.g. the column names in your original data). In this example, our new row identifiers are the names of the species, and so it makes sense to call this column `species` or something similar.
+
+```{r, warning = F, message = F}
+transBci3 <- transDT(bci, transCol="sampleName", rowID = "species")
+
+# note that the species column has been placed as the last column...
+str(transBci3)
+```
+
+Now let's see whether the `transDT` function can be faster than the `dcast/melt` method...
+
+```{r, warning = F, message = F}
+library(microbenchmark)
+
+speedTest <- microbenchmark(
+  transDT(bci, transCol = "sampleName", rowID = "species"),
+  dcast(melt(bci, id.vars = "sampleName"), variable ~ sampleName),
+  times = 50)
+
+# rename factor levels to neaten up results plot
+speedTest$expr <- factor(speedTest$expr,
+  levels = levels(speedTest$expr),
+  labels = c("transDT", "dcast/melt"))
+
+boxplot(time/1000 ~ expr,
+  data = speedTest,
+  ylab = expression(paste("Time (", mu, "S)")),
+  xlab = "Method")
+```
+
+There you have it, transDT gives us the same result, but in a fraction of the time compared to the `dcast/melt` method, even on a relatively small dataset. I hope this is useful to other `R` users other than myself, if you have any questions, do get in touch!

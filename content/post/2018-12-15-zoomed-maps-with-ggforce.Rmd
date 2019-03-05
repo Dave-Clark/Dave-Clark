@@ -97,8 +97,8 @@ ggplot() +
     fill = "lightgrey", color = "lightgrey") +
   geom_point(data = locations, aes(x = long, y = lat, group = NULL),
     size = 2.5) +
-  ggsn:::scalebar(mapDf, dist = 2000, location = "bottomright", model = "WGS84",
-    dd2km = T, st.size = 5, anchor = c(x = 55, y = -40)) +
+  ggsn::scalebar(data = mapDf, dist = 2000, model = "WGS84", st.size = 5,
+    anchor = c(x = 55, y = -40), transform  = T, dist_unit = "km") +
   facet_zoom(xy = region == 1, zoom.size = 1) +
   labs(x = "Latitude (decimal degrees)", y = "Longitude (decimal degrees)") +
   theme_bw() +

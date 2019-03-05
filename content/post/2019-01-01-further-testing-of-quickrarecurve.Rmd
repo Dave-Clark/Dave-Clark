@@ -15,7 +15,7 @@ After my post yesterday, documenting a faster parallelised version of the `rarec
 ```{r, warning = F, message = F, echo = F}
 library(data.table)
 library(vegan)
-bac <- fread("/media/storage/macronutrient/soil/bac16S.csv")
+bac <- fread("bac16S.csv")
 bac <- bac[Chimer_ref == "non_chimera_ref", ]
 
 bac[, c("Chimer_ref", "Chimera_denovo") := NULL]
@@ -38,70 +38,30 @@ hist(rowSums(otuTable[, -1]), xlab = "Sample sizes")
 In this example, our OTU table contains 48 samples and 5381 OTUs, plus a column with the sample names in.
 
 ```{r, warning = F, message = F, echo = F}
-quickRareCurve <- function (x, step = 1, sample, xlab = "Sample Size",
-  ylab = "Species", label = TRUE, col, lty, max.cores = T, nCores = 1, ...)
-{
-    require(parallel)
-    x <- as.matrix(x)
-    if (!identical(all.equal(x, round(x)), TRUE))
-        stop("function accepts only integers (counts)")
-    if (missing(col))
-        col <- par("col")
-    if (missing(lty))
-        lty <- par("lty")
-    tot <- rowSums(x) # calculates library sizes
-    S <- specnumber(x) # calculates n species for each sample
-    if (any(S <= 0)) {
-        message("empty rows removed")
-        x <- x[S > 0, , drop = FALSE]
-        tot <- tot[S > 0]
-        S <- S[S > 0]
-    } # removes any empty rows
-    nr <- nrow(x) # number of samples
-    col <- rep(col, length.out = nr)
-    lty <- rep(lty, length.out = nr)
-    # parallel mclapply
-    # set number of cores
-    mc <- getOption("mc.cores", ifelse(max.cores, detectCores(), nCores))
-    message(paste("Using ", mc, " cores"))
-    out <- mclapply(seq_len(nr), mc.cores = mc, function(i) {
-        n <- seq(1, tot[i], by = step)
-        if (n[length(n)] != tot[i])
-            n <- c(n, tot[i])
-        drop(rarefy(x[i, ], n))
-    })
-    Nmax <- sapply(out, function(x) max(attr(x, "Subsample")))
-    Smax <- sapply(out, max)
-     plot(c(1, max(Nmax)), c(1, max(Smax)), xlab = xlab, ylab = ylab,
-       type = "n", ...)
-    if (!missing(sample)) {
-      abline(v = sample)
-      rare <- sapply(out, function(z) approx(x = attr(z, "Subsample"),
-         y = z, xout = sample, rule = 1)$y)
-      abline(h = rare, lwd = 0.5)
-      }
-    for (ln in seq_along(out)) {
-      N <- attr(out[[ln]], "Subsample")
-      lines(N, out[[ln]], col = col[ln], lty = lty[ln], ...)
-      }
-    if (label) {
-      ordilabel(cbind(tot, S), labels = rownames(x), ...)
-      }
-    invisible(out)
-}
+# install from ecolFudge package
+library(devtools)
+install_github("dave-clark/ecolFudge")
+
+library(ecolFudge)
 ```
 
 Now we can use `microbenchmark` again to compare the performance of the original `rarecurve` function to our faster parallel version, `quickRareCurve`. We will then plot the results using `ggplot2`. Warning: the code below will take some time to run!
 
-```{r, warning = F, message = F}
+```{r, warning = F, message = F, eval = F}
 library(microbenchmark)
-library(ggplot2)
 
 # benchmark the two functions with 3 replicates
 testResult <- microbenchmark(
   rarecurve(otuTable[, -1]),
   quickRareCurve(otuTable[, -1]),
   times = 3)
+```
+
+```{r, echo = F}
+testResult <- readRDS("quickRareCurveBenchmark.RDS")
+
+```{r, warning = F, message = F}
+library(ggplot2)
 
 # convert from nanoseconds to minutes by dividing
 # time by 6e+10
