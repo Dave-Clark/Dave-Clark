@@ -1,0 +1,53 @@
+---
+title: Calculating the Ecological Hydrocarbon Exposure Index in R
+author: Dave Clark
+date: '2019-03-06'
+slug: calculating-the-ecological-hydrocarbon-exposure-index-in-r
+categories: []
+bibliography: library.bib
+link-citations: true
+csl: geb.csl
+tags: []
+image:
+  caption: ''
+  focal_point: ''
+---
+
+Recently, I've been collaborating with several colleagues on projects focussing on the microbial ecology of hydrocarbon degradation. One of the aspects we've been thinking about, is whether the composition of the microbial community can reflect the level of hydrocarbon exposure. As it turns out, we aren't the first to consider this, as Mariana Lozada and colleagues came up with an "Ecological Hydrocarbon Exposure Index", which uses the composition and structure of the microbial community to quantify the level of hydrocarbon exposure in a given environment [@lozada_2014]. To their credit, the authors provided `R` code to calculate their index in a supplementary PDF on the [journal article page](https://www.jstage.jst.go.jp/article/jsme2/advpub/0/advpub_ME14028/_article/-char/ja/).
+
+However, the original code was designed to run using a `Mothur` formatted taxonomy file, which is not useful for users who might prefer other taxonomy assignment pipelines. Therefore, I decided to rewrite their script into a more useful function format, that can be applied to an OTU table with any taxonomy format. The function is hosted in my GitHub based package `ecolFudge`, and an example of how to use this function is presented below.
+
+```{r}
+# first let's import a small OTU table as an example
+otus <- read.csv("example_OTU_table.csv")
+
+# look at structure of OTU table
+# note that our genus level taxonomy assignment is in "Genus" column
+# and our samples all start with "THx"
+str(otus)
+
+# we first need to create a vector of sample names that we wish to calculate
+# the index for
+samples <- grep("THx", colnames(otus), value = T)
+
+# now we can load the ecolFudge package
+# if you haven't installed it, install it using the devtools package:
+# devtools::install_github("dave-clark/ecolFudge")
+library(ecolFudge)
+
+# now we simply run the index function, giving it the name of our OTU table
+# the vector of sample column names, and the column with the genus level
+# taxonomy assignments
+sampleExposure <- ehei(otus, taxonomyCol = "Genus", sampleCols = samples)
+
+# view the results
+head(sampleExposure)
+
+summary(sampleExposure$exposure)
+
+hist(sampleExposure$exposure, xlab = "Ecological hydrocarbon exposure index")
+```
+
+Hopefully this will be useful to any oil microbiologists out there, particularly those who are forging their own bioinformatics pipelines. As always, feel free to contact me if you have any questions/comments.
+
+# References
