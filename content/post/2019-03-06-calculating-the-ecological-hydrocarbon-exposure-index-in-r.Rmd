@@ -18,7 +18,8 @@ Recently, I've been collaborating with several colleagues on projects focussing 
 However, the original code was designed to run using a `Mothur` formatted taxonomy file, which is not useful for users who might prefer other taxonomy assignment pipelines. Therefore, I decided to rewrite their script into a more useful function format, that can be applied to an OTU table with any taxonomy format. The function is hosted in my GitHub based package `ecolFudge`, and an example of how to use this function is presented below.
 
 ```{r}
-# first let's import a small OTU table as an example
+# first lets import a small OTU table as an example
+
 otus <- read.csv("example_OTU_table.csv")
 
 # look at structure of OTU table
