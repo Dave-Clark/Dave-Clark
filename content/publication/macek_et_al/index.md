@@ -1,5 +1,5 @@
 +++
-title = "Impacts of Long‐Term Elevated Atmospheric CO<sub>2</sub> Concentrations on Communities of Arbuscular Mycorrhizal Fungi"
+title = "Impacts of Long‐Term Elevated Atmospheric CO₂ Concentrations on Communities of Arbuscular Mycorrhizal Fungi"
 date = 2019-06-24T00:00:00
 draft = false
 

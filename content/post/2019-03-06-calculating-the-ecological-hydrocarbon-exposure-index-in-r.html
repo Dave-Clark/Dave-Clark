@@ -58,10 +58,8 @@ samples &lt;- grep(&quot;THx&quot;, colnames(otus), value = T)
 
 # now we can load the ecolFudge package
 # if you haven&#39;t installed it, install it using the devtools package:
-devtools::install_github(&quot;dave-clark/ecolFudge&quot;)</code></pre>
-<pre><code>## Skipping install of &#39;ecolFudge&#39; from a github remote, the SHA1 (e8c16a0e) has not changed since last install.
-##   Use `force = TRUE` to force installation</code></pre>
-<pre class="r"><code>library(ecolFudge)
+# devtools::install_github(&quot;dave-clark/ecolFudge&quot;)
+library(ecolFudge)
 
 # now we simply run the index function, giving it the name of our OTU table
 # the vector of sample column names, and the column with the genus level
